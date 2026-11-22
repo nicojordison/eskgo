@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id          String   @id @db.Uuid
+  displayName String?  @map("display_name")
+  email       String?
+  avatarUrl   String?  @map("avatar_url")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+}
+
+model Category {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?   @map("user_id") @db.Uuid
+  name       String
+  kind       String    @default("expense")
+  color      String?
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("categories")
+}
+
+model Card {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  name        String
+  lastFour    String    @map("last_four") @db.Char(4)
+  creditLimit Decimal   @map("credit_limit") @db.Decimal(14, 2)
+  closingDay  Int       @map("closing_day") @db.SmallInt
+  dueDay      Int       @map("due_day") @db.SmallInt
+  brand       String?
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("cards")
+}
+
+model Transaction {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  description String
+  amount      Decimal   @db.Decimal(14, 2)
+  categoryId  String?   @map("category_id") @db.Uuid
+  cardId      String?   @map("card_id") @db.Uuid
+  occurredAt  DateTime  @map("occurred_at") @db.Date
+  notes       String?
+  source      String    @default("manual")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, occurredAt(sort: Desc)])
+  @@map("transactions")
+}
+
+model Goal {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  name         String
+  targetAmount Decimal   @map("target_amount") @db.Decimal(14, 2)
+  targetDate   DateTime? @map("target_date") @db.Date
+  status       String    @default("active")
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("goals")
+}
+
+model GoalContribution {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  goalId        String   @map("goal_id") @db.Uuid
+  amount        Decimal  @db.Decimal(14, 2)
+  contributedAt DateTime @map("contributed_at") @db.Date
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, goalId, contributedAt(sort: Desc)])
+  @@map("goal_contributions")
+}
+
+model Budget {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  categoryId  String   @map("category_id") @db.Uuid
+  period      DateTime @db.Date
+  limitAmount Decimal  @map("limit_amount") @db.Decimal(14, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, categoryId, period])
+  @@map("budgets")
+}
+
+model InvoiceImport {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  fileName    String    @map("file_name")
+  storagePath String?   @map("storage_path")
+  status      String    @default("draft")
+  uploadedAt  DateTime  @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("invoice_imports")
+}
+
+model InvoiceLine {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  invoiceImportId String    @map("invoice_import_id") @db.Uuid
+  description     String
+  amount          Decimal   @db.Decimal(14, 2)
+  occurredAt      DateTime? @map("occurred_at") @db.Date
+  categoryId      String?   @map("category_id") @db.Uuid
+  cardId          String?   @map("card_id") @db.Uuid
+  selected        Boolean   @default(true)
+  transactionId   String?   @map("transaction_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("invoice_lines")
+}

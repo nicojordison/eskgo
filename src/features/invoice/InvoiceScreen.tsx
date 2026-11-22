@@ -10,7 +10,7 @@ export function InvoiceScreen({ onBack, onConfirm }: { onBack: () => void; onCon
   const [fileName, setFileName] = useState('fatura-novembro.pdf')
   const [error, setError] = useState('')
   const [rows, setRows] = useState(readInvoiceDemo())
-  const [selected, setSelected] = useState<number[]>(rows.map((row) => row.id))
+  const [selected, setSelected] = useState<(string | number)[]>(rows.map((row) => row.id))
   const fileRef = useRef<HTMLInputElement>(null)
 
   const readFile = (file?: File) => {
@@ -35,7 +35,7 @@ export function InvoiceScreen({ onBack, onConfirm }: { onBack: () => void; onCon
       setStep('review')
     }, 1350)
   }
-  const toggleRow = (id: number) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
+  const toggleRow = (id: string | number) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id])
   const chosen = rows.filter((row) => selected.includes(row.id))
   const total = chosen.reduce((sum, row) => sum + Math.abs(row.amount), 0)
 

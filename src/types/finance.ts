@@ -1,5 +1,5 @@
 export type Transaction = {
-  id: number
+  id: string | number
   name: string
   category: string
   date: string
@@ -9,7 +9,7 @@ export type Transaction = {
 }
 
 export type CardData = {
-  id: number
+  id: string | number
   name: string
   last4: string
   total: number
@@ -19,7 +19,7 @@ export type CardData = {
 }
 
 export type Goal = {
-  id: number
+  id: string | number
   name: string
   saved: number
   target: number
